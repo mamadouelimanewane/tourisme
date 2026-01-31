@@ -47,10 +47,10 @@ let currentView = 'map';
 // INITIALISATION
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Force refresh sample data for galleries and filter reset
-    if (!localStorage.getItem('tourisme_v6')) {
+    // Force refresh sample data for version v7 (fixes coordinates and popups)
+    if (!localStorage.getItem('tourisme_v7')) {
         localStorage.removeItem('senegaltourisme_locations');
-        localStorage.setItem('tourisme_v6', 'true');
+        localStorage.setItem('tourisme_v7', 'true');
         tourismData = [];
     }
     generateSampleData();
@@ -103,10 +103,16 @@ function generateSampleData() {
 
         const isHotelOrAuberge = cat.id === 'hotels' || cat.id === 'auberges';
 
-        // Coordinates dispersion factor (Much wider for regions)
-        // Dakar is smaller (0.15 degree spread ~ 16km)
-        // Others are wider (1.0 degree spread ~ 110km)
-        const spread = isDakarRegion ? 0.15 : 0.8;
+        // Coordinates dispersion factor (narrower to avoid ocean)
+        // Dakar: 14.71, -17.44 -> Limit West to -17.51 (Ngor/Almadies tip)
+        let latOff = (Math.random() - 0.5) * spread;
+        let lngOff = (Math.random() - 0.5) * spread;
+
+        // Fix logic for Dakar to stay on land
+        if (reg.id === 'dakar') {
+            if (lngOff < -0.07) lngOff = -0.07; // Prevent going too far West into deep ocean
+            if (latOff > 0.1) latOff = 0.1;
+        }
 
         // Assign demonstration images
         let demoImage = null;
@@ -116,19 +122,23 @@ function generateSampleData() {
             demoGallery = [
                 'assets/hotel1.png',
                 'assets/hotel2.png',
-                'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80', // Room
-                'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=400&q=80'  // Pool/Lobby
+                'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80',
+                'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=400&q=80'
             ];
         } else if (cat.id === 'auberges') {
             demoImage = 'assets/auberge1.png';
             demoGallery = [
                 'assets/auberge1.png',
-                'https://images.unsplash.com/photo-1555854816-8097584bb531?auto=format&fit=crop&w=400&q=80', // Dorm/Room
-                'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=400&q=80'  // Common area
+                'https://images.unsplash.com/photo-1555854816-8097584bb531?auto=format&fit=crop&w=400&q=80',
+                'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=400&q=80'
             ];
         } else if (cat.id === 'nature') {
             demoImage = 'assets/nature1.png';
             demoGallery = ['assets/nature1.png'];
+        } else {
+            // Default demo image for others
+            demoImage = 'https://images.unsplash.com/photo-1523906834658-6e24ef2346f9?auto=format&fit=crop&w=600&q=80';
+            demoGallery = [demoImage];
         }
 
         tourismData.push({
@@ -137,8 +147,8 @@ function generateSampleData() {
             category: cat.id,
             venue: `${name}, ${reg.label}`,
             region: reg.id,
-            lat: reg.lat + (Math.random() - 0.5) * spread,
-            lng: reg.lng + (Math.random() - 0.5) * spread,
+            lat: reg.lat + latOff,
+            lng: reg.lng + lngOff,
             price: isHotelOrAuberge ? `${(Math.floor(Math.random() * 5) + 2) * 10000} FCFA` : "Prix variable",
             phone: isHotelOrAuberge ? `+221 33 ${Math.floor(100 + Math.random() * 900)} ${Math.floor(10 + Math.random() * 89)} ${Math.floor(10 + Math.random() * 89)}` : null,
             stars: isHotelOrAuberge ? Math.floor(Math.random() * 5) + 1 : 0,
@@ -407,18 +417,27 @@ function updateMapMarkers(data) {
         const cat = categories.find(c => c.id === loc.category) || categories[0];
         const marker = L.circleMarker([loc.lat, loc.lng], { radius: 10, fillColor: cat.color, color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
 
+        const imgHtml = loc.image ? `<img src="${loc.image}" style="width:100%; height:100px; object-fit:cover; border-radius:12px; margin-bottom:12px;">` : '';
+        const galleryHtml = loc.gallery && loc.gallery.length > 0
+            ? `<div style="display:flex; gap:5px; margin-bottom:12px; overflow-x:auto;">
+                ${loc.gallery.map(img => `<img src="${img}" style="width:50px; height:40px; object-fit:cover; border-radius:6px;">`).join('')}
+               </div>`
+            : '';
+
         marker.bindPopup(`
-            <div style="padding: 10px; min-width: 200px">
+            <div style="padding: 5px; min-width: 220px">
+                ${imgHtml}
                 ${loc.stars > 0 ? `<div style="color: #f1c40f; margin-bottom: 5px;">${"⭐".repeat(loc.stars)}</div>` : ''}
-                <strong style="display:block; margin-bottom: 5px; font-size: 1.1rem;">${loc.title}</strong>
-                <span style="font-size:12px; color:#94A3B8; display:block; margin-bottom:8px;">${cat.icon} ${cat.label}</span>
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                    <span style="font-size:13px; color:#fff">📍 ${loc.venue}</span>
+                <strong style="display:block; margin-bottom: 5px; font-size: 1.1rem; color: #fff;">${loc.title}</strong>
+                <span style="font-size:12px; color:#94A3B8; display:block; margin-bottom:10px;">${cat.icon} ${cat.label}</span>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <span style="font-size:13px; color:#E2E8F0;">📍 ${loc.venue}</span>
                     ${loc.phone ? `<span style="font-size:13px; color:var(--primary); font-weight:700;">📞 ${loc.phone}</span>` : ''}
                     ${loc.price ? `<span style="font-size:14px; color:#2ECC71; font-weight:800; margin-top:5px;">🏷️ ${loc.price} / nuit</span>` : ''}
                 </div>
+                ${galleryHtml}
                 <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}', '_blank')" 
-                        style="margin-top: 15px; width: 100%; padding: 8px; border-radius: 8px; border: none; background: #4285F4; color: white; font-weight: 700; cursor: pointer;">
+                        style="margin-top: 10px; width: 100%; padding: 10px; border-radius: 10px; border: none; background: #4285F4; color: white; font-weight: 700; cursor: pointer;">
                     Itinéraire Maps
                 </button>
             </div>
