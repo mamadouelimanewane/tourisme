@@ -39,7 +39,7 @@ let activeFilters = {
     category: null,
     region: null,
     search: '',
-    mapCategories: new Set(categories.map(c => c.id)) // Toutes les catégories par défaut
+    mapCategories: new Set() // Vide au démarrage comme demandé
 };
 let currentView = 'map';
 
@@ -47,10 +47,10 @@ let currentView = 'map';
 // INITIALISATION
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Force refresh sample data to include new images and fix locations
-    if (!localStorage.getItem('tourisme_v5')) {
+    // Force refresh sample data for galleries and filter reset
+    if (!localStorage.getItem('tourisme_v6')) {
         localStorage.removeItem('senegaltourisme_locations');
-        localStorage.setItem('tourisme_v5', 'true');
+        localStorage.setItem('tourisme_v6', 'true');
         tourismData = [];
     }
     generateSampleData();
@@ -113,10 +113,19 @@ function generateSampleData() {
         let demoGallery = [];
         if (cat.id === 'hotels') {
             demoImage = 'assets/hotel1.png';
-            demoGallery = ['assets/hotel1.png', 'assets/hotel2.png'];
+            demoGallery = [
+                'assets/hotel1.png',
+                'assets/hotel2.png',
+                'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80', // Room
+                'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=400&q=80'  // Pool/Lobby
+            ];
         } else if (cat.id === 'auberges') {
             demoImage = 'assets/auberge1.png';
-            demoGallery = ['assets/auberge1.png'];
+            demoGallery = [
+                'assets/auberge1.png',
+                'https://images.unsplash.com/photo-1555854816-8097584bb531?auto=format&fit=crop&w=400&q=80', // Dorm/Room
+                'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=400&q=80'  // Common area
+            ];
         } else if (cat.id === 'nature') {
             demoImage = 'assets/nature1.png';
             demoGallery = ['assets/nature1.png'];
