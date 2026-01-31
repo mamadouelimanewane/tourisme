@@ -47,6 +47,12 @@ let currentView = 'map';
 // INITIALISATION
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
+    // Force refresh sample data to include new images
+    if (!localStorage.getItem('tourisme_v2')) {
+        localStorage.removeItem('senegaltourisme_locations');
+        localStorage.setItem('tourisme_v2', 'true');
+        tourismData = [];
+    }
     generateSampleData();
     initUI();
     setupMapLegend();
@@ -81,6 +87,21 @@ function generateSampleData() {
             if (list) {
                 list.forEach(name => {
                     const isHotelOrAuberge = cat.id === 'hotels' || cat.id === 'auberges';
+
+                    // Assign demonstration images
+                    let demoImage = null;
+                    let demoGallery = [];
+                    if (cat.id === 'hotels') {
+                        demoImage = 'assets/hotel1.png';
+                        demoGallery = ['assets/hotel1.png', 'assets/hotel2.png'];
+                    } else if (cat.id === 'auberges') {
+                        demoImage = 'assets/auberge1.png';
+                        demoGallery = ['assets/auberge1.png'];
+                    } else if (cat.id === 'nature') {
+                        demoImage = 'assets/nature1.png';
+                        demoGallery = ['assets/nature1.png'];
+                    }
+
                     tourismData.push({
                         id: counter++,
                         title: `${name} - ${reg.label}`,
@@ -92,7 +113,8 @@ function generateSampleData() {
                         price: isHotelOrAuberge ? `${(Math.floor(Math.random() * 5) + 2) * 10000} FCFA` : "Prix variable",
                         phone: isHotelOrAuberge ? `+221 33 ${Math.floor(100 + Math.random() * 900)} ${Math.floor(10 + Math.random() * 89)} ${Math.floor(10 + Math.random() * 89)}` : null,
                         stars: isHotelOrAuberge ? Math.floor(Math.random() * 5) + 1 : 0,
-                        gallery: [], // Initialisé vide
+                        image: demoImage,
+                        gallery: demoGallery,
                         status: 'approved'
                     });
                 });
