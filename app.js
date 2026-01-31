@@ -47,10 +47,10 @@ let currentView = 'map';
 // INITIALISATION
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Force refresh sample data for version v7 (fixes coordinates and popups)
-    if (!localStorage.getItem('tourisme_v7')) {
+    // Force refresh sample data for version v8 (fixes ocean markers and image display)
+    if (!localStorage.getItem('tourisme_v8')) {
         localStorage.removeItem('senegaltourisme_locations');
-        localStorage.setItem('tourisme_v7', 'true');
+        localStorage.setItem('tourisme_v8', 'true');
         tourismData = [];
     }
     generateSampleData();
@@ -85,62 +85,63 @@ function generateSampleData() {
     const coastalRegions = ['dakar', 'petite-cote', 'saint-louis', 'casamance', 'sine-saloum', 'lac-rose'];
 
     for (let i = 0; i < totalSites; i++) {
-        // 70% chance of being in Dakar region
-        const isDakarRegion = Math.random() < 0.7;
-        let reg = isDakarRegion ? regions[0] : regions[Math.floor(Math.random() * (regions.length - 1)) + 1];
-
         let cat = categories[Math.floor(Math.random() * categories.length)];
-
-        // CORRECTION GÉOGRAPHIQUE: Les plages ne peuvent être que sur la côte
-        if (cat.id === 'plages' && !coastalRegions.includes(reg.id)) {
-            // Si on tombe sur une plage dans une région non-côtière, on change soit la catégorie soit on force Dakar
-            reg = regions[0]; // On force Dakar (côte) pour la plage
-        }
-
         const list = names[cat.id] || [];
         const baseName = list[Math.floor(Math.random() * list.length)] || "Lieu Touristique";
-        const name = `${baseName} #${counter}`;
 
-        const isHotelOrAuberge = cat.id === 'hotels' || cat.id === 'auberges';
-
-        // Coordinates dispersion factor (narrower to avoid ocean)
-        // Dakar is smaller (0.15 degree spread ~ 16km)
-        // Others are wider (0.8 degree spread ~ 60km)
-        const currentSpread = isDakarRegion ? 0.15 : 0.8;
-        let latOff = (Math.random() - 0.5) * currentSpread;
-        let lngOff = (Math.random() - 0.5) * currentSpread;
-
-        // Fix logic for Dakar to stay on land
-        if (reg.id === 'dakar') {
-            if (lngOff < -0.07) lngOff = -0.07; // Prevent going too far West into deep ocean
-            if (latOff > 0.1) latOff = 0.1;
+        // Logical location fixes
+        let reg = regions[Math.floor(Math.random() * regions.length)];
+        if (baseName.includes("Dakar") || baseName.includes("Almadies") || baseName.includes("Soumbédioune") ||
+            baseName.includes("Kermel") || baseName.includes("Renaissance") || baseName.includes("Mamelles") ||
+            baseName.includes("Ngor") || baseName.includes("Gorée") || baseName.includes("Plateau") || baseName.includes("Rome") || baseName.includes("Lagon")) {
+            reg = regions[0]; // Force Dakar
+        } else if (baseName.includes("Saly") || baseName.includes("Mbour") || baseName.includes("Somone") || baseName.includes("Popenguine")) {
+            reg = regions[1]; // Force Petite Côte
+        } else if (baseName.includes("Saint-Louis") || baseName.includes("Djoudj")) {
+            reg = regions[2]; // Force Saint-Louis
+        } else if (baseName.includes("Casamance") || baseName.includes("Ziguinchor") || baseName.includes("Cap Skirring") || baseName.includes("Kafountine")) {
+            reg = regions[3]; // Force Casamance
+        } else if (baseName.includes("Saloum")) {
+            reg = regions[4]; // Force Saloum
+        } else if (baseName.includes("Lac Rose") || baseName.includes("Lompoul")) {
+            reg = regions[6]; // Force Lac Rose
         }
 
-        // Assign demonstration images
-        let demoImage = null;
-        let demoGallery = [];
+        if (cat.id === 'plages' && !coastalRegions.includes(reg.id)) {
+            reg = regions[0];
+        }
+
+        const name = `${baseName} #${counter}`;
+        const isHotelOrAuberge = cat.id === 'hotels' || cat.id === 'auberges';
+
+        // Tight dispersion to avoid ocean
+        let spread = (reg.id === 'dakar') ? 0.08 : 0.3;
+        let latOff = (Math.random() - 0.5) * spread;
+        let lngOff = (Math.random() - 0.5) * spread;
+
+        // Force stay on land (Simple bounding boxes relative to region center)
+        if (reg.id === 'dakar') {
+            if (lngOff < -0.05) lngOff = -0.05; // No ocean
+            if (latOff > 0.05) latOff = 0.05;
+        } else if (reg.id === 'petite-cote') {
+            if (lngOff < 0) lngOff = 0.02; // No ocean
+        } else if (reg.id === 'saint-louis') {
+            if (lngOff < -0.01) lngOff = 0; // No ocean
+        }
+
+        // Assign demonstration images (with fallback)
+        let demoImage = 'https://images.unsplash.com/photo-1523906834658-6e24ef2346f9?auto=format&fit=crop&w=600&q=80';
+        let demoGallery = [demoImage];
+
         if (cat.id === 'hotels') {
             demoImage = 'assets/hotel1.png';
-            demoGallery = [
-                'assets/hotel1.png',
-                'assets/hotel2.png',
-                'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80',
-                'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=400&q=80'
-            ];
+            demoGallery = ['assets/hotel1.png', 'assets/hotel2.png', 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80'];
         } else if (cat.id === 'auberges') {
             demoImage = 'assets/auberge1.png';
-            demoGallery = [
-                'assets/auberge1.png',
-                'https://images.unsplash.com/photo-1555854816-8097584bb531?auto=format&fit=crop&w=400&q=80',
-                'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=400&q=80'
-            ];
+            demoGallery = ['assets/auberge1.png', 'https://images.unsplash.com/photo-1555854816-8097584bb531?auto=format&fit=crop&w=400&q=80'];
         } else if (cat.id === 'nature') {
             demoImage = 'assets/nature1.png';
             demoGallery = ['assets/nature1.png'];
-        } else {
-            // Default demo image for others
-            demoImage = 'https://images.unsplash.com/photo-1523906834658-6e24ef2346f9?auto=format&fit=crop&w=600&q=80';
-            demoGallery = [demoImage];
         }
 
         tourismData.push({
@@ -159,7 +160,6 @@ function generateSampleData() {
             status: 'approved'
         });
     }
-
     localStorage.setItem('senegaltourisme_locations', JSON.stringify(tourismData));
 }
 
@@ -341,7 +341,7 @@ function renderLocations() {
 
             const galleryHtml = loc.gallery && loc.gallery.length > 0
                 ? `<div class="mini-gallery" style="display:flex; gap:5px; margin-top:10px; overflow-x:auto; padding-bottom:5px;">
-                    ${loc.gallery.map(img => `<img src="${img}" style="width:60px; height:45px; object-fit:cover; border-radius:4px; flex-shrink:0;">`).join('')}
+                    ${loc.gallery.map(img => `<img src="${img}" onerror="this.src='https://images.unsplash.com/photo-1523906834658-6e24ef2346f9?auto=format&fit=crop&w=100&q=80'" style="width:60px; height:45px; object-fit:cover; border-radius:4px; flex-shrink:0;">`).join('')}
                    </div>`
                 : '';
 
@@ -419,10 +419,10 @@ function updateMapMarkers(data) {
         const cat = categories.find(c => c.id === loc.category) || categories[0];
         const marker = L.circleMarker([loc.lat, loc.lng], { radius: 10, fillColor: cat.color, color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
 
-        const imgHtml = loc.image ? `<img src="${loc.image}" style="width:100%; height:100px; object-fit:cover; border-radius:12px; margin-bottom:12px;">` : '';
+        const imgHtml = loc.image ? `<img src="${loc.image}" onerror="this.src='https://images.unsplash.com/photo-1523906834658-6e24ef2346f9?auto=format&fit=crop&w=400&q=80'" style="width:100%; height:110px; object-fit:cover; border-radius:12px; margin-bottom:12px;">` : '';
         const galleryHtml = loc.gallery && loc.gallery.length > 0
             ? `<div style="display:flex; gap:5px; margin-bottom:12px; overflow-x:auto;">
-                ${loc.gallery.map(img => `<img src="${img}" style="width:50px; height:40px; object-fit:cover; border-radius:6px;">`).join('')}
+                ${loc.gallery.map(img => `<img src="${img}" onerror="this.src='https://images.unsplash.com/photo-1523906834658-6e24ef2346f9?auto=format&fit=crop&w=100&q=80'" style="width:50px; height:40px; object-fit:cover; border-radius:6px;">`).join('')}
                </div>`
             : '';
 
