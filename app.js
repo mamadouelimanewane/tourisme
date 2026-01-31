@@ -48,9 +48,9 @@ let currentView = 'map';
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
     // Force refresh sample data to include new images and fix locations
-    if (!localStorage.getItem('tourisme_v3')) {
+    if (!localStorage.getItem('tourisme_v4')) {
         localStorage.removeItem('senegaltourisme_locations');
-        localStorage.setItem('tourisme_v3', 'true');
+        localStorage.setItem('tourisme_v4', 'true');
         tourismData = [];
     }
     generateSampleData();
@@ -67,60 +67,71 @@ function generateSampleData() {
     if (tourismData.length > 0) return;
 
     const names = {
-        hotels: ["King Fahd Palace", "Terrou-Bi Resort", "Lamantin Beach Resort", "Royal Decameron Baobab", "Hôtel de la Poste Saint-Louis", "Ecolodge de Simal", "Esperanto Lodge Kafountine"],
-        auberges: ["Auberge du Désert", "Auberge Marie-Lucien", "Le Campement du Saloum", "Auberge de la Plage", "Auberge Culturelle"],
-        sites: ["Île de Gorée", "Quartier Colonial Saint-Louis", "Maison des Esclaves", "Fort d'Estrées", "Vestiges de Carabane"],
-        nature: ["Parc National du Niokolo-Koba", "Réserve de Bandia", "Djoudj Bird Sanctuary", "Forêt de Casamance", "Delta du Saloum"],
-        plages: ["Plage des Almadies", "Plage de Cap Skirring", "Plage de Toubab Dialaw", "Plage de Popenguine", "Plage de Ngor"],
-        restaurants: ["Le Lagon 1", "La Fourchette", "Chez Loutcha", "Restaurant du Fleuve", "Le Jardin Thaï"],
-        culture: ["Musée Théodore Monod", "Musée des Civilisations Noires", "Village des Arts", "IFAN Dakar"],
-        artisanat: ["Marché Soumbédioune", "Marché HLM", "Marché Kermel", "Village Artisanal de Thiès"],
-        loisirs: ["Surf à Dakar", "Golf de Saly", "Accrobaobab", "Pêche au gros à Dakar"],
-        monuments: ["Monument de la Renaissance Africaine", "Phare des Mamelles", "Grande Mosquée de Dakar"],
-        excursions: ["Visite du Lac Rose", "Désert de Lompoul", "Excursion au Delta du Saloum", "Safari à Bandia"]
+        hotels: ["King Fahd Palace", "Terrou-Bi Resort", "Lamantin Beach Resort", "Royal Decameron Baobab", "Hôtel de la Poste Saint-Louis", "Ecolodge de Simal", "Esperanto Lodge Kafountine", "Radisson Blu", "Pullman Dakar", "Novotel", "Hôtel Savana", "Le Lodge Saly", "Keur Saloum", "Hôtel Baobab Belge"],
+        auberges: ["Auberge du Désert", "Auberge Marie-Lucien", "Le Campement du Saloum", "Auberge de la Plage", "Auberge Culturelle", "Case de l'Oncle Phil", "Auberge de l'Océan", "L'Oasis Dakar"],
+        sites: ["Île de Gorée", "Quartier Colonial Saint-Louis", "Maison des Esclaves", "Fort d'Estrées", "Vestiges de Carabane", "Cercle Mégalithique", "Village Artisanal", "Désert de Lompoul"],
+        nature: ["Parc National du Niokolo-Koba", "Réserve de Bandia", "Djoudj Bird Sanctuary", "Forêt de Casamance", "Delta du Saloum", "Lagune de la Somone", "Île de la Madeleine"],
+        plages: ["Plage des Almadies", "Plage de Cap Skirring", "Plage de Toubab Dialaw", "Plage de Popenguine", "Plage de Ngor", "Plage de Yoff", "Plage de Saly"],
+        restaurants: ["Le Lagon 1", "La Fourchette", "Chez Loutcha", "Restaurant du Fleuve", "Le Jardin Thaï", "Café de Rome", "Le Ngor"],
+        culture: ["Musée Théodore Monod", "Musée des Civilisations Noires", "Village des Arts", "IFAN Dakar", "Grand Théâtre Doudou Ndiaye Rose"],
+        artisanat: ["Marché Soumbédioune", "Marché HLM", "Marché Kermel", "Village Artisanal de Thiès", "Marché Sandaga"],
+        loisirs: ["Surf à Dakar", "Golf de Saly", "Accrobaobab", "Pêche au gros à Dakar", "Cinéma Pathé Dakar"],
+        monuments: ["Monument de la Renaissance Africaine", "Phare des Mamelles", "Grande Mosquée de Dakar", "Cathédrale de Dakar"],
+        excursions: ["Visite du Lac Rose", "Désert de Lompoul", "Excursion au Delta du Saloum", "Safari à Bandia", "Excursion Djoudj"]
     };
 
     let counter = 1;
-    regions.forEach(reg => {
-        categories.forEach(cat => {
-            const list = names[cat.id];
-            if (list) {
-                list.forEach(name => {
-                    const isHotelOrAuberge = cat.id === 'hotels' || cat.id === 'auberges';
+    // Total sites to generate
+    const totalSites = 200;
 
-                    // Assign demonstration images
-                    let demoImage = null;
-                    let demoGallery = [];
-                    if (cat.id === 'hotels') {
-                        demoImage = 'assets/hotel1.png';
-                        demoGallery = ['assets/hotel1.png', 'assets/hotel2.png'];
-                    } else if (cat.id === 'auberges') {
-                        demoImage = 'assets/auberge1.png';
-                        demoGallery = ['assets/auberge1.png'];
-                    } else if (cat.id === 'nature') {
-                        demoImage = 'assets/nature1.png';
-                        demoGallery = ['assets/nature1.png'];
-                    }
+    for (let i = 0; i < totalSites; i++) {
+        // 70% chance of being in Dakar region
+        const isDakarRegion = Math.random() < 0.7;
+        const reg = isDakarRegion ? regions[0] : regions[Math.floor(Math.random() * (regions.length - 1)) + 1];
 
-                    tourismData.push({
-                        id: counter++,
-                        title: `${name} - ${reg.label}`,
-                        category: cat.id,
-                        venue: `${name}, région de ${reg.label}`,
-                        region: reg.id,
-                        lat: reg.lat + (Math.random() - 0.5) * 0.4, // Augmentation de la dispersion
-                        lng: reg.lng + (Math.random() - 0.5) * 0.4,
-                        price: isHotelOrAuberge ? `${(Math.floor(Math.random() * 5) + 2) * 10000} FCFA` : "Prix variable",
-                        phone: isHotelOrAuberge ? `+221 33 ${Math.floor(100 + Math.random() * 900)} ${Math.floor(10 + Math.random() * 89)} ${Math.floor(10 + Math.random() * 89)}` : null,
-                        stars: isHotelOrAuberge ? Math.floor(Math.random() * 5) + 1 : 0,
-                        image: demoImage,
-                        gallery: demoGallery,
-                        status: 'approved'
-                    });
-                });
-            }
+        const cat = categories[Math.floor(Math.random() * categories.length)];
+        const list = names[cat.id] || [];
+        const baseName = list[Math.floor(Math.random() * list.length)] || "Lieu Touristique";
+        const name = `${baseName} #${counter}`;
+
+        const isHotelOrAuberge = cat.id === 'hotels' || cat.id === 'auberges';
+
+        // Coordinates dispersion factor (Much wider for regions)
+        // Dakar is smaller (0.15 degree spread ~ 16km)
+        // Others are wider (1.0 degree spread ~ 110km)
+        const spread = isDakarRegion ? 0.15 : 0.8;
+
+        // Assign demonstration images
+        let demoImage = null;
+        let demoGallery = [];
+        if (cat.id === 'hotels') {
+            demoImage = 'assets/hotel1.png';
+            demoGallery = ['assets/hotel1.png', 'assets/hotel2.png'];
+        } else if (cat.id === 'auberges') {
+            demoImage = 'assets/auberge1.png';
+            demoGallery = ['assets/auberge1.png'];
+        } else if (cat.id === 'nature') {
+            demoImage = 'assets/nature1.png';
+            demoGallery = ['assets/nature1.png'];
+        }
+
+        tourismData.push({
+            id: counter++,
+            title: name,
+            category: cat.id,
+            venue: `${name}, ${reg.label}`,
+            region: reg.id,
+            lat: reg.lat + (Math.random() - 0.5) * spread,
+            lng: reg.lng + (Math.random() - 0.5) * spread,
+            price: isHotelOrAuberge ? `${(Math.floor(Math.random() * 5) + 2) * 10000} FCFA` : "Prix variable",
+            phone: isHotelOrAuberge ? `+221 33 ${Math.floor(100 + Math.random() * 900)} ${Math.floor(10 + Math.random() * 89)} ${Math.floor(10 + Math.random() * 89)}` : null,
+            stars: isHotelOrAuberge ? Math.floor(Math.random() * 5) + 1 : 0,
+            image: demoImage,
+            gallery: demoGallery,
+            status: 'approved'
         });
-    });
+    }
+
     localStorage.setItem('senegaltourisme_locations', JSON.stringify(tourismData));
 }
 
