@@ -440,7 +440,8 @@ function switchView(mode) {
 
 function initMap() {
     if (map) return;
-    map = L.map('mainMap', { zoomControl: false }).setView([14.4974, -14.4524], 7); // Center of Senegal
+    // Centrage sur Dakar par défaut avec un zoom plus proche
+    map = L.map('mainMap', { zoomControl: false }).setView([14.71, -17.3], 9);
     L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', { attribution: 'OSM France' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     document.getElementById('maximizeMapControl').onclick = () => document.getElementById('mapView').classList.toggle('map-fullscreen');
