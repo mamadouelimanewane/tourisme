@@ -440,8 +440,8 @@ function switchView(mode) {
 
 function initMap() {
     if (map) return;
-    // Centrage sur tout le Sénégal par défaut
-    map = L.map('mainMap', { zoomControl: false }).setView([14.49, -14.45], 7);
+    // Centrage décalé vers l'Ouest pour masquer le Mali et voir tout le Sénégal
+    map = L.map('mainMap', { zoomControl: false }).setView([14.45, -15.5], 7);
     L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', { attribution: 'OSM France' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     document.getElementById('maximizeMapControl').onclick = () => document.getElementById('mapView').classList.toggle('map-fullscreen');
