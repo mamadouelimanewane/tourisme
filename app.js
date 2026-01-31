@@ -440,8 +440,8 @@ function switchView(mode) {
 
 function initMap() {
     if (map) return;
-    // Centrage sur le milieu géographique pour voir TOUT le Sénégal à l'ouverture
-    map = L.map('mainMap', { zoomControl: false }).setView([14.45, -14.8], 7);
+    // Centrage décalé vers l'Ouest pour éviter le chevauchement avec la légende à droite
+    map = L.map('mainMap', { zoomControl: false }).setView([14.45, -15.8], 7);
     L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', { attribution: 'OSM France' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     document.getElementById('maximizeMapControl').onclick = () => document.getElementById('mapView').classList.toggle('map-fullscreen');
