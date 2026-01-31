@@ -47,10 +47,10 @@ let currentView = 'map';
 // INITIALISATION
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Force refresh sample data for version v8 (fixes ocean markers and image display)
-    if (!localStorage.getItem('tourisme_v8')) {
+    // Force refresh sample data for version v9 (contextual images)
+    if (!localStorage.getItem('tourisme_v9')) {
         localStorage.removeItem('senegaltourisme_locations');
-        localStorage.setItem('tourisme_v8', 'true');
+        localStorage.setItem('tourisme_v9', 'true');
         tourismData = [];
     }
     generateSampleData();
@@ -129,20 +129,75 @@ function generateSampleData() {
             if (lngOff < -0.01) lngOff = 0; // No ocean
         }
 
-        // Assign demonstration images (with fallback)
-        let demoImage = 'https://images.unsplash.com/photo-1523906834658-6e24ef2346f9?auto=format&fit=crop&w=600&q=80';
-        let demoGallery = [demoImage];
+        // Contextual Image Mapping
+        const contextImages = {
+            hotels: [
+                'https://images.unsplash.com/photo-1566073771259-6a8506099945',
+                'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b',
+                'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb'
+            ],
+            auberges: [
+                'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4',
+                'https://images.unsplash.com/photo-1555854816-8097584bb531',
+                'https://images.unsplash.com/photo-1445013544569-72d07ec046c4'
+            ],
+            plages: [
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e',
+                'https://images.unsplash.com/photo-1519046904884-53103b34b206',
+                'https://images.unsplash.com/photo-1473116763249-2faaef81ccda'
+            ],
+            nature: [
+                'https://images.unsplash.com/photo-1516428990200-c1bc0a69d4ad',
+                'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e',
+                'https://images.unsplash.com/photo-1523805009345-7448845a90d2'
+            ],
+            restaurants: [
+                'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4',
+                'https://images.unsplash.com/photo-1552566626-52f8b828add9',
+                'https://images.unsplash.com/photo-1414235077428-338989a2e8c0'
+            ],
+            culture: [
+                'https://images.unsplash.com/photo-1523895663372-62bb52cd4a53',
+                'https://images.unsplash.com/photo-1518998053502-53cc8de43b78',
+                'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3'
+            ],
+            sites: [
+                'https://images.unsplash.com/photo-1548013146-72479768bada',
+                'https://images.unsplash.com/photo-1564507592334-1e40bb9646da',
+                'https://images.unsplash.com/photo-1583320291931-1e967568edfa'
+            ],
+            monuments: [
+                'https://images.unsplash.com/photo-1590059232617-6a848a39f7b3',
+                'https://images.unsplash.com/photo-1518709268805-4e9042af9f23',
+                'https://images.unsplash.com/photo-1544735048-35756ea05723'
+            ],
+            artisanat: [
+                'https://images.unsplash.com/photo-1590402444527-0805ea2be874',
+                'https://images.unsplash.com/photo-1512418490979-92798ced43a9',
+                'https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7'
+            ],
+            loisirs: [
+                'https://images.unsplash.com/photo-1502680390469-be75c86b6369',
+                'https://images.unsplash.com/photo-1534067783941-51c9c23eccfd',
+                'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b'
+            ],
+            excursions: [
+                'https://images.unsplash.com/photo-1533105079780-92b9be482077',
+                'https://images.unsplash.com/photo-1469811639458-eb961d5eaa10',
+                'https://images.unsplash.com/photo-1506466010722-395ee2bef877'
+            ]
+        };
 
-        if (cat.id === 'hotels') {
-            demoImage = 'assets/hotel1.png';
-            demoGallery = ['assets/hotel1.png', 'assets/hotel2.png', 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80'];
-        } else if (cat.id === 'auberges') {
-            demoImage = 'assets/auberge1.png';
-            demoGallery = ['assets/auberge1.png', 'https://images.unsplash.com/photo-1555854816-8097584bb531?auto=format&fit=crop&w=400&q=80'];
-        } else if (cat.id === 'nature') {
-            demoImage = 'assets/nature1.png';
-            demoGallery = ['assets/nature1.png'];
-        }
+        const currentCatImages = contextImages[cat.id] || contextImages['sites'];
+        const randomImgId = Math.floor(Math.random() * currentCatImages.length);
+
+        let demoImage = `${currentCatImages[randomImgId]}?auto=format&fit=crop&w=600&q=80`;
+        let demoGallery = currentCatImages.map(img => `${img}?auto=format&fit=crop&w=400&q=80`);
+
+        // Override with local assets for specific categories to keep the curated feel
+        if (cat.id === 'hotels' && Math.random() > 0.5) demoImage = 'assets/hotel1.png';
+        if (cat.id === 'auberges' && Math.random() > 0.5) demoImage = 'assets/auberge1.png';
+        if (cat.id === 'nature' && Math.random() > 0.5) demoImage = 'assets/nature1.png';
 
         tourismData.push({
             id: counter++,
