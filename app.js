@@ -48,9 +48,9 @@ let currentView = 'map';
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
     // Force refresh sample data to include new images and fix locations
-    if (!localStorage.getItem('tourisme_v4')) {
+    if (!localStorage.getItem('tourisme_v5')) {
         localStorage.removeItem('senegaltourisme_locations');
-        localStorage.setItem('tourisme_v4', 'true');
+        localStorage.setItem('tourisme_v5', 'true');
         tourismData = [];
     }
     generateSampleData();
@@ -81,15 +81,22 @@ function generateSampleData() {
     };
 
     let counter = 1;
-    // Total sites to generate
     const totalSites = 200;
+    const coastalRegions = ['dakar', 'petite-cote', 'saint-louis', 'casamance', 'sine-saloum', 'lac-rose'];
 
     for (let i = 0; i < totalSites; i++) {
         // 70% chance of being in Dakar region
         const isDakarRegion = Math.random() < 0.7;
-        const reg = isDakarRegion ? regions[0] : regions[Math.floor(Math.random() * (regions.length - 1)) + 1];
+        let reg = isDakarRegion ? regions[0] : regions[Math.floor(Math.random() * (regions.length - 1)) + 1];
 
-        const cat = categories[Math.floor(Math.random() * categories.length)];
+        let cat = categories[Math.floor(Math.random() * categories.length)];
+
+        // CORRECTION GÉOGRAPHIQUE: Les plages ne peuvent être que sur la côte
+        if (cat.id === 'plages' && !coastalRegions.includes(reg.id)) {
+            // Si on tombe sur une plage dans une région non-côtière, on change soit la catégorie soit on force Dakar
+            reg = regions[0]; // On force Dakar (côte) pour la plage
+        }
+
         const list = names[cat.id] || [];
         const baseName = list[Math.floor(Math.random() * list.length)] || "Lieu Touristique";
         const name = `${baseName} #${counter}`;
