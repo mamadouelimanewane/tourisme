@@ -39,7 +39,7 @@ let activeFilters = {
     category: null,
     region: null,
     search: '',
-    mapCategories: new Set() // Vide au démarrage comme demandé pour Events
+    mapCategories: new Set(categories.map(c => c.id)) // Toutes les catégories par défaut
 };
 let currentView = 'map';
 
@@ -47,10 +47,10 @@ let currentView = 'map';
 // INITIALISATION
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Force refresh sample data to include new images
-    if (!localStorage.getItem('tourisme_v2')) {
+    // Force refresh sample data to include new images and fix locations
+    if (!localStorage.getItem('tourisme_v3')) {
         localStorage.removeItem('senegaltourisme_locations');
-        localStorage.setItem('tourisme_v2', 'true');
+        localStorage.setItem('tourisme_v3', 'true');
         tourismData = [];
     }
     generateSampleData();
@@ -108,8 +108,8 @@ function generateSampleData() {
                         category: cat.id,
                         venue: `${name}, région de ${reg.label}`,
                         region: reg.id,
-                        lat: reg.lat + (Math.random() - 0.5) * 0.1,
-                        lng: reg.lng + (Math.random() - 0.5) * 0.1,
+                        lat: reg.lat + (Math.random() - 0.5) * 0.4, // Augmentation de la dispersion
+                        lng: reg.lng + (Math.random() - 0.5) * 0.4,
                         price: isHotelOrAuberge ? `${(Math.floor(Math.random() * 5) + 2) * 10000} FCFA` : "Prix variable",
                         phone: isHotelOrAuberge ? `+221 33 ${Math.floor(100 + Math.random() * 900)} ${Math.floor(10 + Math.random() * 89)} ${Math.floor(10 + Math.random() * 89)}` : null,
                         stars: isHotelOrAuberge ? Math.floor(Math.random() * 5) + 1 : 0,
@@ -363,7 +363,7 @@ function setupMapLegend() {
         const item = document.createElement('div');
         item.className = 'legend-item';
         // Vide par défaut comme demandé
-        item.innerHTML = `<input type="checkbox" id="map-cat-${cat.id}"><label for="map-cat-${cat.id}"><span class="dot-indicator" style="background: ${cat.color}"></span> ${cat.icon} ${cat.label}</label>`;
+        item.innerHTML = `<input type="checkbox" id="map-cat-${cat.id}" ${activeFilters.mapCategories.has(cat.id) ? 'checked' : ''}><label for="map-cat-${cat.id}"><span class="dot-indicator" style="background: ${cat.color}"></span> ${cat.icon} ${cat.label}</label>`;
         item.querySelector('input').onchange = (e) => {
             if (e.target.checked) activeFilters.mapCategories.add(cat.id);
             else activeFilters.mapCategories.delete(cat.id);
