@@ -1,4 +1,4 @@
-const ADMIN_CODE = "DAKAR2026";
+const ADMIN_CODE = "Astelwane";
 let pendingLocations = JSON.parse(localStorage.getItem('senegaltourisme_pending')) || [];
 let approvedLocations = JSON.parse(localStorage.getItem('senegaltourisme_locations')) || [];
 
