@@ -104,9 +104,11 @@ function generateSampleData() {
         const isHotelOrAuberge = cat.id === 'hotels' || cat.id === 'auberges';
 
         // Coordinates dispersion factor (narrower to avoid ocean)
-        // Dakar: 14.71, -17.44 -> Limit West to -17.51 (Ngor/Almadies tip)
-        let latOff = (Math.random() - 0.5) * spread;
-        let lngOff = (Math.random() - 0.5) * spread;
+        // Dakar is smaller (0.15 degree spread ~ 16km)
+        // Others are wider (0.8 degree spread ~ 60km)
+        const currentSpread = isDakarRegion ? 0.15 : 0.8;
+        let latOff = (Math.random() - 0.5) * currentSpread;
+        let lngOff = (Math.random() - 0.5) * currentSpread;
 
         // Fix logic for Dakar to stay on land
         if (reg.id === 'dakar') {
